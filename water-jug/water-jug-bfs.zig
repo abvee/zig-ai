@@ -27,23 +27,43 @@ var b_max: u8 = undefined;
 const enqueue = @import("queue.zig").enqueue;
 const pop = @import("queue.zig").pop;
 
+// visited
+
+// check if the state has been visited
+inline fn state_visited(c: state) bool {
+	_ = c;
+	return true;
+}
+
 pub fn main() !void {
 	if (std.os.argv.len < 3) return ArgErrors.NotEnoughArguments;
 
 	a_max = patoi(u8, std.os.argv[1]);
 	b_max = patoi(u8, std.os.argv[2]);
 
-	const state_end: state = state{.a = 4, .b = 0};
-	var state_curr: state = state{.a = 0, .b = 0};
-	state_curr.a += 1;
-	_ = state_end;
+	const end_state: state = state{.a = 4, .b = 0};
+	var curr_state: state = state{.a = 0, .b = 0};
+	curr_state.a += 1;
+	_ = end_state;
 
 	// BFS starts
 	// @compileLog(@typeInfo(action));
 	// @compileLog(@typeInfo(action).Enum);
-	inline for (@typeInfo(action).Enum.fields) |ac| {
-		print("{s}: {d}\n", .{ac.name, ac.value});
+	var next_state: state = undefined;
+	while (curr_state.a != end_state.a and curr_state.b != end_state.b) {
+		visited[curr_state.a][curr_state.b] = true;
+
+		inline for (@typeInfo(action).Enum.fields) |ac| {
+			next_state = next_state(curr_state, ac);
+			if (!state_visited(next_state))
+				enqueue(next_state);
+		}
+
+		curr_state = pop() catch break; // break if we finish the queue
 	}
+
+	if (curr_state.a != end_state.a and curr_state.b != end_state.b)
+		print("Found end state:")
 }
 
 fn patoi(comptime T: type, s: [*:0]u8) T {

@@ -13,7 +13,7 @@ pub fn enqueue(x: state) QueueError!void {
 
 	if (front == queue.len) front = 0;
 	queue[rear] = x;
-	rear = (rear + 1) % @as(u8, queue.len);
+	rear = (rear + 1) % queue.len;
 }
 
 pub fn pop() QueueError!state {
@@ -31,13 +31,25 @@ pub fn pop() QueueError!state {
 
 inline fn print_queue() void {
 	for (queue) |i|
-		print("{} ", .{i});
+		print("(a:{},b:{}) ", .{i.a, i.b});
 	print("f: {} r: {}\n", .{front, rear});
 }
 
 test "Queue overflow" {
+	// You need to have a capture group ??
 	for (0..MAX) |_| {
 		try enqueue(state{.a = 9, .b = 9});
 		print_queue();
 	}
+	enqueue(state{.a = 9, .b = 9}) catch |err|
+		print("Error: {}", .{err});
+}
+
+test "Queue underflow" {
+	for (0..MAX) |_| {
+		_ = try pop();
+		print_queue();
+	}
+	_ = pop() catch |err|
+		print("Error: {}", .{err});
 }
