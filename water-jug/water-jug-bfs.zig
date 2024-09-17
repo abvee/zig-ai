@@ -1,5 +1,6 @@
 const std = @import("std");
 const print = std.debug.print;
+const assert = std.debug.assert;
 
 const ArgErrors = error{NotEnoughArguments};
 
@@ -28,11 +29,10 @@ const enqueue = @import("queue.zig").enqueue;
 const pop = @import("queue.zig").pop;
 
 // visited
-const visited_struct = struct {a: u8, b:[]bool};
-var visited: []visited_struct = undefined;
+var visited: [][]bool = undefined;
 
 inline fn state_visited(c: state) bool {
-	return visited[c.a].b[c.b];
+	return visited[c.a][c.b];
 }
 
 pub fn main() !void {
@@ -47,11 +47,10 @@ pub fn main() !void {
 	defer arena.deinit();
 	const allocator = arena.allocator();
 
-	visited = try allocator.alloc(visited_struct, a_max);
-	for (visited, 0..) |_, i| {
-		visited[i].a = @intCast(i);
-		visited[i].b = try allocator.alloc(bool, b_max);
-		for (visited[i].b) |*x| x.* = false;
+	visited = try allocator.alloc([]bool, a_max + 1);
+	for (visited) |*v| {
+		v.* = try allocator.alloc(bool, b_max + 1);
+		for (v.*) |*x| x.* = false;
 	}
 
 	const end_state: state = state{.a = 4, .b = 0};
@@ -60,9 +59,10 @@ pub fn main() !void {
 
 	// BFS starts
 	var state_next: state = undefined;
-	while (curr_state.a != end_state.a and curr_state.b != end_state.b) {
+	// assert((curr_state.a != end_state.a) and (curr_state.b != end_state.b));
+	while (curr_state.a != end_state.a or curr_state.b != end_state.b) {
 
-		visited[curr_state.a].b[curr_state.b]= true;
+		visited[curr_state.a][curr_state.b] = true;
 
 		// @compileLog(@typeInfo(action).Enum);
 		inline for (@typeInfo(action).Enum.fields) |ac| {
