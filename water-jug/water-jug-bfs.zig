@@ -28,42 +28,56 @@ const enqueue = @import("queue.zig").enqueue;
 const pop = @import("queue.zig").pop;
 
 // visited
+const visited_struct = struct {a: u8, b:[]bool};
+var visited: []visited_struct = undefined;
 
-// check if the state has been visited
 inline fn state_visited(c: state) bool {
-	_ = c;
-	return true;
+	return visited[c.a].b[c.b];
 }
 
 pub fn main() !void {
 	if (std.os.argv.len < 3) return ArgErrors.NotEnoughArguments;
 
+	// get max values for jugs
 	a_max = patoi(u8, std.os.argv[1]);
 	b_max = patoi(u8, std.os.argv[2]);
+
+	// visited hash map
+	var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator); 
+	defer arena.deinit();
+	const allocator = arena.allocator();
+
+	visited = try allocator.alloc(visited_struct, a_max);
+	for (visited, 0..) |_, i| {
+		visited[i].a = @intCast(i);
+		visited[i].b = try allocator.alloc(bool, b_max);
+		for (visited[i].b) |*x| x.* = false;
+	}
 
 	const end_state: state = state{.a = 4, .b = 0};
 	var curr_state: state = state{.a = 0, .b = 0};
 	curr_state.a += 1;
-	_ = end_state;
 
 	// BFS starts
-	// @compileLog(@typeInfo(action));
-	// @compileLog(@typeInfo(action).Enum);
-	var next_state: state = undefined;
+	var state_next: state = undefined;
 	while (curr_state.a != end_state.a and curr_state.b != end_state.b) {
-		visited[curr_state.a][curr_state.b] = true;
 
+		visited[curr_state.a].b[curr_state.b]= true;
+
+		// @compileLog(@typeInfo(action).Enum);
 		inline for (@typeInfo(action).Enum.fields) |ac| {
-			next_state = next_state(curr_state, ac);
-			if (!state_visited(next_state))
-				enqueue(next_state);
+			state_next = next_state(curr_state, @enumFromInt(ac.value));
+			try if (!state_visited(state_next))
+				enqueue(state_next); // queue should never be full
 		}
 
 		curr_state = pop() catch break; // break if we finish the queue
 	}
 
 	if (curr_state.a != end_state.a and curr_state.b != end_state.b)
-		print("Found end state:")
+		print("No end state found\n", .{})
+	else
+		print("End state found a:{} b:{}\n", .{curr_state.a, curr_state.b});
 }
 
 fn patoi(comptime T: type, s: [*:0]u8) T {
@@ -80,29 +94,30 @@ fn patoi(comptime T: type, s: [*:0]u8) T {
 
 // get the next state given the action and the current state
 fn next_state(curr: state, ac: action) state {
+	var ret: state = curr;
 	switch (ac) {
-		.FillA => curr.a = a_max,
-		.FillB => curr.b = b_max,
+		.FillA => ret.a = a_max,
+		.FillB => ret.b = b_max,
 		.FillAwithB => {
-			curr.a += curr.b;
-			if (curr.a - a_max < 0)
-				curr.b = 0
+			ret.a += ret.b;
+			if (ret.a - a_max < 0)
+				ret.b = 0
 			else {
-				curr.b = if (curr.a - a_max > b_max) b_max else curr.a - a_max;
-				curr.a = a_max;
+				ret.b = if (ret.a - a_max > b_max) b_max else ret.a - a_max;
+				ret.a = a_max;
 			}
 		},
 		.FillBwithA => {
-			curr.b += curr.a;
-			if (curr.b - b_max < 0)
-				curr.a = 0
+			ret.b += ret.a;
+			if (ret.b - b_max < 0)
+				ret.a = 0
 			else {
-				curr.a = if (curr.b - b_max > a_max) a_max else curr.b - b_max;
-				curr.b = b_max;
+				ret.a = if (ret.b - b_max > a_max) a_max else ret.b - b_max;
+				ret.b = b_max;
 			}
 		},
-		.EmptyA => curr.a = 0,
-		.EmptyB => curr.b = 0,
+		.EmptyA => ret.a = 0,
+		.EmptyB => ret.b = 0,
 	}
-	return curr;
+	return ret;
 }
