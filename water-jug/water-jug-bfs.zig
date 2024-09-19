@@ -21,8 +21,8 @@ const action = enum(u8) {
 };
 
 // max values of jugs
-var a_max: u8 = undefined;
-var b_max: u8 = undefined;
+var a_max: i32 = undefined;
+var b_max: i32 = undefined;
 
 // queue stuff
 const enqueue = @import("queue.zig").enqueue;
@@ -47,9 +47,9 @@ pub fn main() !void {
 	defer arena.deinit();
 	const allocator = arena.allocator();
 
-	visited = try allocator.alloc([]bool, a_max + 1);
+	visited = try allocator.alloc([]bool, @intCast(a_max + 1));
 	for (visited) |*v| {
-		v.* = try allocator.alloc(bool, b_max + 1);
+		v.* = try allocator.alloc(bool, @intCast(b_max + 1));
 		for (v.*) |*x| x.* = false;
 	}
 
@@ -95,16 +95,18 @@ fn patoi(comptime T: type, s: [*:0]u8) T {
 // get the next state given the action and the current state
 fn next_state(curr: state, ac: action) state {
 	var ret: state = curr;
+	const a_max_cast: u8 = @intCast(a_max);
+	const b_max_cast: u8 = @intCast(b_max);
 	switch (ac) {
-		.FillA => ret.a = a_max,
-		.FillB => ret.b = b_max,
+		.FillA => ret.a = a_max_cast,
+		.FillB => ret.b = b_max_cast,
 		.FillAwithB => {
 			ret.a += ret.b;
 			if (ret.a - a_max < 0)
 				ret.b = 0
 			else {
-				ret.b = if (ret.a - a_max > b_max) b_max else ret.a - a_max;
-				ret.a = a_max;
+				ret.b = @intCast(if (ret.a - a_max > b_max) b_max else ret.a - a_max);
+				ret.a = a_max_cast;
 			}
 		},
 		.FillBwithA => {
@@ -112,8 +114,8 @@ fn next_state(curr: state, ac: action) state {
 			if (ret.b - b_max < 0)
 				ret.a = 0
 			else {
-				ret.a = if (ret.b - b_max > a_max) a_max else ret.b - b_max;
-				ret.b = b_max;
+				ret.a = @intCast(if (ret.b - b_max > a_max) a_max else ret.b - b_max);
+				ret.b = b_max_cast;
 			}
 		},
 		.EmptyA => ret.a = 0,
