@@ -2,7 +2,7 @@ const state = @import("water-jug-bfs.zig").state;
 const print = @import("std").debug.print;
 
 // queue stuff
-const MAX = 10;
+const MAX = 100;
 var queue: [MAX]state = [_]state{state{.a = 0, .b = 0}} ** MAX;
 var front: usize = queue.len;
 var rear: usize = 0;
