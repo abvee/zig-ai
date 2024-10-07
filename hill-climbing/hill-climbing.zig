@@ -1,6 +1,6 @@
 const std = @import("std");
 const rand = std.crypto.random;
-const print = std.debug.print;
+const stdout = std.io.getStdOut().writer();
 
 const default_len = 20;
 const steepest_ascent_jump = 5;
@@ -15,7 +15,7 @@ pub fn main() !void {
 	const allocator = arena.allocator();
 
 	if (std.os.argv.len < 5) {
-		print("Not enough arguments passed, using default array\n", .{});
+		try stdout.print("Not enough arguments passed, using default array\n", .{});
 		arr = &default_arr;
 		rand_array(arr);
 	} else {
@@ -27,17 +27,17 @@ pub fn main() !void {
 
 	// Hill climbing
 
-	print("\nFull array:\n", .{});
-	for (arr) |i| print("{} ", .{i});
-	print("\n", .{});
+	try stdout.print("\nFull array:\n", .{});
+	for (arr) |i| try stdout.print("{} ", .{i});
+	try stdout.print("\n", .{});
 
 	var current: u8 = 0;
-	print("\nSimple Hill Climbing maxima (local) is at: {}({})\n", .{
+	try stdout.print("\nSimple Hill Climbing maxima (local) is at: {}({})\n", .{
 		blk:{current = simple_hc(arr); break :blk current;},
 		arr[current],
 	});
 
-	print("Steepest Ascent Hill Climbing maxima (local) is at: {}({})\n", .{
+	try stdout.print("Steepest Ascent Hill Climbing maxima (local) is at: {}({})\n", .{
 		blk:{current = steepest_ascent_hc(arr, steepest_ascent_jump); break :blk current;},
 		arr[current],
 	});
@@ -68,11 +68,11 @@ fn patoi(str: [*:0]u8) u8 {
 }
 
 test "+ve atoi" {
-	print("{}\n",.{patoi(std.os.argv[1])});
+	try stdout.print("{}\n",.{patoi(std.os.argv[1])});
 }
 
 // TODO: plot a graph to show local maxima
-fn print_graph(arr: []u8, maxima: u8) void {
+inline fn print_graph(arr: []u8, maxima: u8) void {
 	_ = arr;
 	_ = maxima;
 }

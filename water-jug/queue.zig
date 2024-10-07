@@ -1,5 +1,7 @@
 const state = @import("water-jug-bfs.zig").state;
-const print = @import("std").debug.print;
+const std = @import("std");
+const print = std.debug.print;
+const stdout = std.io.getStdOut().writer();
 
 // queue stuff
 const MAX = 100;
@@ -31,8 +33,8 @@ pub fn pop() QueueError!state {
 
 inline fn print_queue() void {
 	for (queue) |i|
-		print("(a:{},b:{}) ", .{i.a, i.b});
-	print("f: {} r: {}\n", .{front, rear});
+		stdout.print("(a:{},b:{}) ", .{i.a, i.b}) catch {};
+	stdout.print("f: {} r: {}\n", .{front, rear}) catch {};
 }
 
 test "Queue overflow" {
@@ -42,7 +44,7 @@ test "Queue overflow" {
 		print_queue();
 	}
 	enqueue(state{.a = 9, .b = 9}) catch |err|
-		print("Error: {}", .{err});
+		std.debug.print("Error: {}", .{err});
 }
 
 test "Queue underflow" {
@@ -51,5 +53,5 @@ test "Queue underflow" {
 		print_queue();
 	}
 	_ = pop() catch |err|
-		print("Error: {}", .{err});
+		std.debug.print("Error: {}", .{err});
 }

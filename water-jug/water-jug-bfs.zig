@@ -1,5 +1,5 @@
 const std = @import("std");
-const print = std.debug.print;
+const stdout = std.io.getStdOut().writer();
 const assert = std.debug.assert;
 
 const ArgErrors = error{NotEnoughArguments};
@@ -75,9 +75,9 @@ pub fn main() !void {
 	}
 
 	if (curr_state.a != end_state.a and curr_state.b != end_state.b)
-		print("No end state found\n", .{})
+		try stdout.print("No end state found\n", .{})
 	else
-		print("End state found a:{} b:{}\n", .{curr_state.a, curr_state.b});
+		try stdout.print("End state found a:{} b:{}\n", .{curr_state.a, curr_state.b});
 }
 
 fn patoi(comptime T: type, s: [*:0]u8) T {
