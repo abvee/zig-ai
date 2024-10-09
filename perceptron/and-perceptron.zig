@@ -5,8 +5,8 @@ const alpha: i32 = 1;
 var b: i32 = 1; // bias
 
 // inputs
-const x1: [2]i32 = [_]i32{-1,1};
-const x2: [2]i32 = [_]i32{-1,1};
+const x1: [2]i32 = [_]i32{1,-1};
+const x2: [2]i32 = [_]i32{1,-1};
 
 const threshold = enum(i32) { THETHA = 0 };
 
@@ -25,6 +25,7 @@ pub fn main() !void {
 		var zero_counter: u8 = 0; // number of no weight changes
 		for (x1) |p| {
 			for (x2) |q| {
+				const and_gate = if (p == -1 and q == -1) -1 else p * q;
 
 				stdout.print("{:>2} {:>2} ({:>2})\t{:>2}\t", .{
 					p, q, b, activation_func(p, w[0], q, w[1], b)
@@ -37,10 +38,8 @@ pub fn main() !void {
 				else
 					yin = 0;
 
-				const and_gate = if (p == -1 and q == -1) -1 else p * q;
-
 				stdout.print("{d:>2}\t{:>2}\t", .{yin, and_gate}) catch {};
-				if (yin != p * q) {
+				if (yin != and_gate) {
 					w[0] += alpha * and_gate * p;
 					w[1] += alpha * and_gate * q;
 					b += alpha * p * q;
