@@ -15,13 +15,20 @@ const TETHA: i32 = 0.0;
 pub fn main() !void {
 	var epoch: u8 = 0;
 	var w: [2]i32 = .{0,0};
-
 	var yin: i32 = undefined;
+
+	stdout.print("Inputs\t\tNet\tOutput\tTarget\tWeight changes\tWeights\n", .{}) catch {};
 	while (true) {
+
+		stdout.print("Epoch {}\n", .{epoch}) catch {};
 
 		var zero_counter: u8 = 0; // number of no weight changes
 		for (x1) |p| {
 			for (x2) |q| {
+
+				stdout.print("{:>2} {:>2} ({:>2})\t{:>2}\t", .{
+					p, q, b, activation_func(p, w[0], q, w[1], b)
+				}) catch {};
 
 				if (activation_func(p, w[0], q, w[1], b) > TETHA)
 					yin = 1
@@ -31,22 +38,31 @@ pub fn main() !void {
 					yin = 0;
 
 				const and_gate = if (p == -1 and q == -1) -1 else p * q;
+
+				stdout.print("{d:>2}\t{:>2}\t", .{yin, and_gate}) catch {};
 				if (yin != p * q) {
 					w[0] += alpha * and_gate * p;
 					w[1] += alpha * and_gate * q;
 					b += alpha * p * q;
 				}
 				else zero_counter += 1;
+
+				stdout.print("{:>2} {:>2} {:>2}\t", .{
+					alpha * and_gate * p,
+					alpha * and_gate * q,
+					alpha * p * q
+				}) catch {};
+
+				stdout.print("{:>2} {:>2} ({:>2})\t\n", .{
+					w[0],
+					w[1],
+					b,
+				}) catch {};
 			}
 		}
 		epoch += 1;
 		if (zero_counter == 3) break;
-		std.debug.print("zero_counter: {} ", .{zero_counter});
-		std.debug.print("w1: {} w2: {}\n", .{w[0], w[1]});
 	}
-
-	try stdout.print("Weights:\n", .{});
-	try stdout.print("w1: {}\tw2: {}\tb: {}\n", .{w[0], w[1], b});
 }
 
 inline fn activation_func(x: i32, w1: i32, y: i32, w2: i32, bias: i32) i32 {
