@@ -21,4 +21,23 @@ pub fn build(b: *std.Build) void {
 		});
 		b.installArtifact(hill_climbing);
 	}
+
+	// perceptrons
+	{
+		const and_perceptron = b.addExecutable(.{
+			.name = "and-perceptron",
+			.root_source_file = b.path("perceptron/and-perceptron.zig"),
+			.target = b.host,
+			.optimize = optimize,
+		});
+		b.installArtifact(and_perceptron);
+
+		const or_perceptron = b.addExecutable(.{
+			.name = "or-perceptron",
+			.root_source_file = b.path("perceptron/or-perceptron.zig"),
+			.target = b.host,
+			.optimize = optimize,
+		});
+		b.installArtifact(or_perceptron);
+	}
 }
