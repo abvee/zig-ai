@@ -1,5 +1,5 @@
 const std = @import("std");
-const stdout = std.getStdOut().writer();
+const stdout = std.io.getStdOut().writer();
 
 const alpha: f32 = 1; // learning rate
 const y_actual: f32 = 0.5; // actual output
@@ -46,19 +46,29 @@ var output: onode = onode{
 };
 
 pub fn main() !void {
-	// std.debug.print("{}\n", .{h1.x1.*});
 	var y_neural: f32 = undefined; // output of the neural net
 
 	var epoch: u8 = 0;
+	stdout.print("Net Input\tHidden Output\tOutput\tError\tWeight changes\tWeights\n", .{})
+		catch {};
 	while (epoch < 255) : (epoch += 1) {
+		stdout.print("Epoch {}\n", .{epoch}) catch {};
 		// forward propogation
 		// the inputs y1 and y2 are the outputs of the 2 hidden nodes
 		output.y1 = sigmoid(net_input(h1.x1.*, h1.w1, h1.x2.*, h1.w2));
 		output.y2 = sigmoid(net_input(h2.x1.*, h2.w1, h2.x2.*, h2.w2));
 
-		y_neural = sigmoid(net_input(output.y1, output.w1, output.y2, output.w2));
+		stdout.print("{d:.3} {d:.3}\t", .{
+			net_input(h1.x1.*, h1.w1, h1.x2.*, h1.w2),
+			net_input(h2.x1.*, h2.w1, h2.x2.*, h2.w2)
+		}) catch {};
+		stdout.print("{d:.3} {d:.3}\t", .{output.y1, output.y2}) catch {};
 
-		const e_value: f32 = y_neural - y_actual;
+		y_neural = sigmoid(net_input(output.y1, output.w1, output.y2, output.w2));
+		stdout.print("{d:.3}\t", .{y_neural}) catch {};
+
+		const e_value: f32 = y_actual - y_neural;
+		stdout.print("{d:.3}\t", .{e_value}) catch {};
 		if (e_value == 0) break;
 
 		// 0 - output del, 1 - h1, 2 - h2
@@ -74,6 +84,24 @@ pub fn main() !void {
 		h1.w2 += alpha * del_out[1] * h1.x2.*;
 		h2.w1 += alpha * del_out[1] * h2.x1.*;
 		h2.w2 += alpha * del_out[1] * h2.x2.*;
+
+		// stdout.print("{d:.3} {d:.3} {d:.3} {d:.3} {d:.3} {d:.3}\n", .{
+		// 	alpha * del_out[0] * output.y1,
+		// 	alpha * del_out[0] * output.y2,
+		// 	alpha * del_out[1] * h1.x1.*,
+		// 	alpha * del_out[1] * h2.x1.*,
+		// 	alpha * del_out[1] * h2.x1.*,
+		// 	alpha * del_out[1] * h2.x2.*,
+		// }) catch {};
+
+		stdout.print("{d:.3} {d:.3} {d:.3} {d:.3} {d:.3} {d:.3}\n", .{
+			output.w1,
+			output.w2,
+			h1.w1,
+			h1.w2,
+			h2.w1,
+			h2.w2,
+		}) catch {};
 	}
 }
 
