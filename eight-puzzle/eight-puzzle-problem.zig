@@ -1,15 +1,15 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const action = enum(i8) {
-	LEFT = -1,
-	RIGHT = 1,
-	UP = -3,
-	DOWN = 3,
+const action = [4]i8{
+	-1, // LEFT
+	1, // RIGHT
+	-3, // UP
+	3, // DOWN
 };
 
 pub fn main() void {
-	var curr_state: [9]i8 = [9]i8{0,1,2,3,4,5,6,7,8};
+	var curr_state: [9]u8 = [9]u8{0,1,2,3,4,5,6,7,8};
 	var zero_pos: i8 = 0; // index of the [0] in curr_state
 	var h: u8 = 0; // heuristic
 	// NOTE: We maximize costs
@@ -18,24 +18,38 @@ pub fn main() void {
 		unreachable; // TODO: add cmd line support
 	
 	while (h != 8) {
-		inline for (@typeInfo(action).Enum.fields) |ac| {
-			const next_state = if (is_valid(zero_pos, ac.value))
-				nstate(curr_state, zero_pos, ac.value)
-				else curr_state;
-			const n_cost = cost(next_state);
-			if (n_cost > h) {
-				h = n_cost;
-				curr_state = next_state;
-				zero_pos += ac.value;
+
+		var n_cost: u8 = h; // costs of the next states
+		var next_state: [9]u8 = curr_state;
+		var highest_h_action: i8 = undefined; // the action taken on the next state with the highest heuristic
+
+		// get the next state with the highest heuristic and it's
+		// associated action.
+		for (action) |ac| {
+			if (!is_valid(zero_pos, ac))
+				continue;
+			next_state = nstate(curr_state, zero_pos, ac);
+			const c = heuristic(next_state);
+			if (c > n_cost) {
+				n_cost = c;
+				highest_h_action = ac;
 			}
 		}
+
+		// change states according to the next state with the highest heuristic
+		// cost
+		assert(highest_h_action != undefined);
+		curr_state = nstate(curr_state, zero_pos, highest_h_action);
+		zero_pos += highest_h_action;
+		h = n_cost;
+		// NOTE: every iteration HAS to have a next state with a higher cost
 	}
 
 	std.debug.print("Final state: {any}\n", .{curr_state});
 	std.debug.print("Final Cost: {}\n", .{h});
 }
 
-inline fn nstate(curr_state: [9]i8, zero_pos: i8, ac: i8) [9]i8 {
+inline fn nstate(curr_state: [9]u8, zero_pos: i8, ac: i8) [9]u8 {
 	assert(curr_state[@intCast(zero_pos)] == 0);
 	assert(zero_pos + ac >= 0);
 
@@ -53,7 +67,7 @@ inline fn is_valid(zero_pos: i8, ac: i8) bool {
 	return true;
 } 
 
-inline fn cost(curr_state: [9]i8) u8 {
+inline fn heuristic(curr_state: [9]u8) u8 {
 	var ret: u8 = 0;
 	for (curr_state, 1..) |c, i|
 		if (c == i)
@@ -63,10 +77,10 @@ inline fn cost(curr_state: [9]i8) u8 {
 }
 
 test "cost" {
-	const curr_state: [9]i8 = [9]i8{0,1,2,3,4,5,6,7,8};
+	const curr_state: [9]u8 = [9]i8{0,1,2,3,4,5,6,7,8};
 	const other: [9]i8 = [9]i8{1,2,3,4,5,6,7,0,8};
-	std.debug.print("{}\n", .{cost(curr_state)});
-	std.debug.print("{}\n", .{cost(other)});
+	std.debug.print("{}\n", .{heuristic(curr_state)});
+	std.debug.print("{}\n", .{heuristic(other)});
 }
 
 test "nstate" {
