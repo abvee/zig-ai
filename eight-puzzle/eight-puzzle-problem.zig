@@ -17,11 +17,12 @@ pub fn main() void {
 	if (std.os.argv.len == 10)
 		unreachable; // TODO: add cmd line support
 	
-	inline for (@typeInfo(action).Enum.fields) |ac| {
-		if (is_valid(zero_pos, ac.value)) {
-			const next_state = nstate(curr_state, zero_pos, ac.value);
+	while (h != 8) {
+		inline for (@typeInfo(action).Enum.fields) |ac| {
+			const next_state = if (is_valid(zero_pos, ac.value))
+				nstate(curr_state, zero_pos, ac.value)
+				else curr_state;
 			const n_cost = cost(next_state);
-
 			if (n_cost > h) {
 				h = n_cost;
 				curr_state = next_state;
