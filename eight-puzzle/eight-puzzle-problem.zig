@@ -4,11 +4,18 @@ const assert = std.debug.assert;
 // The number of tiles in the right position is the heuristic. Thus we maximize
 // heuristics in this program.
 
-const action = [4]i8{
-	-1, // LEFT
-	1, // RIGHT
-	-3, // UP
-	3, // DOWN
+const action = enum(i8){
+	LEFT = -1,
+	RIGHT = 1,
+	UP = -3,
+	DOWN = 3,
+};
+
+const all_actions: [4]action = .{
+	.LEFT,
+	.RIGHT,
+	.UP,
+	.DOWN,
 };
 
 pub fn main() void {
@@ -23,11 +30,11 @@ pub fn main() void {
 
 		var n_cost: u8 = h; // heuristics of the next states
 		var next_state: [9]u8 = curr_state;
-		var highest_h_action: i8 = undefined; // the action taken on the next state with the highest heuristic
+		var highest_h_action: action = undefined; // the action taken on the next state with the highest heuristic
 
 		// get the next state with the highest heuristic and it's
 		// associated action.
-		for (action) |ac| {
+		for (all_actions) |ac| {
 			if (!is_valid(zero_pos, ac))
 				continue;
 			next_state = nstate(curr_state, zero_pos, ac);
@@ -41,7 +48,7 @@ pub fn main() void {
 		// change states to the next state with the highest heuristic.
 		assert(highest_h_action != undefined);
 		curr_state = nstate(curr_state, zero_pos, highest_h_action);
-		zero_pos += highest_h_action;
+		zero_pos += @intFromEnum(highest_h_action);
 		h = n_cost;
 		// NOTE: every iteration HAS to have a next state with a higher cost
 	}
@@ -50,7 +57,9 @@ pub fn main() void {
 	std.debug.print("Final Cost: {}\n", .{h});
 }
 
-inline fn nstate(curr_state: [9]u8, zero_pos: i8, ac: i8) [9]u8 {
+inline fn nstate(curr_state: [9]u8, zero_pos: i8, ac_enum: action) [9]u8 {
+	const ac = @intFromEnum(ac_enum);
+
 	assert(curr_state[@intCast(zero_pos)] == 0);
 	assert(zero_pos + ac >= 0);
 
@@ -62,7 +71,9 @@ inline fn nstate(curr_state: [9]u8, zero_pos: i8, ac: i8) [9]u8 {
 	return next_state;
 }
 
-inline fn is_valid(zero_pos: i8, ac: i8) bool {
+inline fn is_valid(zero_pos: i8, ac_enum: action) bool {
+	const ac = @intFromEnum(ac_enum);
+
 	if (zero_pos + ac > 8 or zero_pos + ac < 0)
 		return false;
 	return true;
