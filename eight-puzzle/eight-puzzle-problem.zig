@@ -1,6 +1,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
+// The number of tiles in the right position is the heuristic. Thus we maximize
+// heuristics in this program.
+
 const action = [4]i8{
 	-1, // LEFT
 	1, // RIGHT
@@ -11,15 +14,14 @@ const action = [4]i8{
 pub fn main() void {
 	var curr_state: [9]u8 = [9]u8{0,1,2,3,4,5,6,7,8};
 	var zero_pos: i8 = 0; // index of the [0] in curr_state
-	var h: u8 = 0; // heuristic
-	// NOTE: We maximize costs
+	var h: u8 = 0; // current state heuristic
 
 	if (std.os.argv.len == 10)
 		unreachable; // TODO: add cmd line support
 	
 	while (h != 8) {
 
-		var n_cost: u8 = h; // costs of the next states
+		var n_cost: u8 = h; // heuristics of the next states
 		var next_state: [9]u8 = curr_state;
 		var highest_h_action: i8 = undefined; // the action taken on the next state with the highest heuristic
 
@@ -36,8 +38,7 @@ pub fn main() void {
 			}
 		}
 
-		// change states according to the next state with the highest heuristic
-		// cost
+		// change states to the next state with the highest heuristic.
 		assert(highest_h_action != undefined);
 		curr_state = nstate(curr_state, zero_pos, highest_h_action);
 		zero_pos += highest_h_action;
@@ -77,23 +78,22 @@ inline fn heuristic(curr_state: [9]u8) u8 {
 }
 
 test "cost" {
-	const curr_state: [9]u8 = [9]i8{0,1,2,3,4,5,6,7,8};
-	const other: [9]i8 = [9]i8{1,2,3,4,5,6,7,0,8};
+	const curr_state: [9]u8 = [9]u8{0,1,2,3,4,5,6,7,8};
+	const other: [9]u8 = [9]u8{1,2,3,4,5,6,7,0,8};
 	std.debug.print("{}\n", .{heuristic(curr_state)});
 	std.debug.print("{}\n", .{heuristic(other)});
 }
 
 test "nstate" {
+	var ss = nstate([9]u8{1,0,2,3,4,5,6,7,8}, 1, action[0]);
+	std.debug.print("LEFT: {any}\n", .{ss});
 
-	var ss = nstate([9]i8{0,1,2,3,4,5,6,7,8}, 0, @intFromEnum(action.RIGHT));
+	ss = nstate([9]u8{0,1,2,3,4,5,6,7,8}, 0, action[1]);
 	std.debug.print("RIGHT: {any}\n", .{ss});
 
-	ss = nstate([9]i8{1,0,2,3,4,5,6,7,8}, 1, @intFromEnum(action.LEFT));
-	std.debug.print("LEFT {any}\n", .{ss});
-
-	ss = nstate([9]i8{4,1,2,3,0,5,6,7,8}, 4, @intFromEnum(action.UP));
+	ss = nstate([9]u8{4,1,2,3,0,5,6,7,8}, 4, action[2]);
 	std.debug.print("UP: {any}\n", .{ss});
 
-	ss = nstate([9]i8{4,1,2,3,0,5,6,7,8}, 4, @intFromEnum(action.DOWN));
+	ss = nstate([9]u8{4,1,2,3,0,5,6,7,8}, 4, action[3]);
 	std.debug.print("DOWN: {any}\n", .{ss});
 }
