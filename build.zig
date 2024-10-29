@@ -22,6 +22,16 @@ pub fn build(b: *std.Build) void {
 		b.installArtifact(hill_climbing);
 	}
 
+	{
+		const eight_puzzle = b.addExecutable(.{
+			.name = "eight-puzzle",
+			.root_source_file = b.path("eight-puzzle/eight-puzzle-problem.zig"),
+			.target = b.host,
+			.optimize = optimize,
+		});
+		b.installArtifact(eight_puzzle);
+	}
+
 	// perceptrons
 	{
 		const and_perceptron = b.addExecutable(.{
