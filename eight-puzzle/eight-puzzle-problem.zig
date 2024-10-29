@@ -1,8 +1,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-// The number of tiles in the right position is the heuristic. Thus we maximize
-// heuristics in this program.
+// We count the number of tiles in the wrong position
+// We aim to minimize the heuristic
 
 const action = enum(i8){
 	LEFT = -1,
@@ -10,7 +10,7 @@ const action = enum(i8){
 	UP = -3,
 	DOWN = 3,
 };
-const all_actions: [4]action = [4]action{
+const all_actions: [4]action = .{
 	.LEFT,
 	.RIGHT,
 	.UP,
@@ -18,15 +18,17 @@ const all_actions: [4]action = [4]action{
 };
 
 pub fn main() void {
-	var curr_state: [9]u8 = [9]u8{0,1,2,3,4,5,6,7,8};
+	var curr_state: [9]u8 = [9]u8{1,2,3,0,4,6,7,5,8};
 	var zero_pos: i8 = 0; // index of the [0] in curr_state
-	var h: u8 = 0; // current state heuristic
+	var h: u8 = heuristic(curr_state); // current state heuristic
+	var g: u8 = 0; // current state level
 
 	if (std.os.argv.len == 10)
 		unreachable; // TODO: add cmd line support
 	
-	while (h != 8) {
-		var n_cost: u8 = 0; // heuristics of the next states
+	while (h != 1) : (g += 1) {
+
+		var n_cost: u8 = 255; // cost of the next state (g + h)
 		var next_state: [9]u8 = curr_state;
 		var highest_h_action: action = undefined; // the action taken on the next state with the highest heuristic
 
@@ -37,8 +39,9 @@ pub fn main() void {
 				continue;
 
 			next_state = nstate(curr_state, zero_pos, ac);
-			const c = heuristic(next_state);
-			if (c >= n_cost) {
+
+			const c = g + heuristic(next_state);
+			if (c < n_cost) {
 				n_cost = c;
 				highest_h_action = ac;
 			}
@@ -46,14 +49,15 @@ pub fn main() void {
 
 		// change states to the next state with the highest heuristic.
 		// TODO: highest_h_action is still undefined. Do something about it
+		assert(highest_h_action != undefined);
 		curr_state = nstate(curr_state, zero_pos, highest_h_action);
 		zero_pos += @intFromEnum(highest_h_action);
-		h = n_cost;
+		h = n_cost - g;
 		// NOTE: every iteration HAS to have a next state with a higher cost
 	}
 
 	std.debug.print("Final state: {any}\n", .{curr_state});
-	std.debug.print("Final Cost: {}\n", .{h});
+	std.debug.print("Final Cost: {}\n", .{h + g});
 }
 
 fn nstate(curr_state: [9]u8, zero_pos: i8, ac_enum: action) [9]u8 {
@@ -82,30 +86,34 @@ inline fn is_valid(zero_pos: i8, ac: action) bool {
 
 inline fn heuristic(curr_state: [9]u8) u8 {
 	var heuristic_val: u8 = 0;
-	for (curr_state, 1..) |c, i|
-		if (c == i)
-			{heuristic_val += 1;};
 
+	for (curr_state, 1..) |c, i|
+		if (c != i)
+			{heuristic_val += 1;};
 	return heuristic_val;
 }
 
-test "cost" {
+test "heuristic" {
 	const curr_state: [9]u8 = [9]u8{0,1,2,3,4,5,6,7,8};
 	const other: [9]u8 = [9]u8{1,2,3,4,5,6,7,0,8};
+
+	const baz: [9]u8 = [9]u8{1,2,3,4,5,6,7,8,0};
+
 	std.debug.print("{}\n", .{heuristic(curr_state)});
 	std.debug.print("{}\n", .{heuristic(other)});
+	std.debug.print("{}\n", .{heuristic(baz)});
 }
 
 test "nstate" {
-	var ss = nstate([9]u8{1,0,2,3,4,5,6,7,8}, 1, action[0]);
+	var ss = nstate([9]u8{1,0,2,3,4,5,6,7,8}, 1, all_actions[0]);
 	std.debug.print("LEFT: {any}\n", .{ss});
 
-	ss = nstate([9]u8{0,1,2,3,4,5,6,7,8}, 0, action[1]);
+	ss = nstate([9]u8{0,1,2,3,4,5,6,7,8}, 0, all_actions[1]);
 	std.debug.print("RIGHT: {any}\n", .{ss});
 
-	ss = nstate([9]u8{4,1,2,3,0,5,6,7,8}, 4, action[2]);
+	ss = nstate([9]u8{4,1,2,3,0,5,6,7,8}, 4, all_actions[2]);
 	std.debug.print("UP: {any}\n", .{ss});
 
-	ss = nstate([9]u8{4,1,2,3,0,5,6,7,8}, 4, action[3]);
+	ss = nstate([9]u8{4,1,2,3,0,5,6,7,8}, 4, all_actions[3]);
 	std.debug.print("DOWN: {any}\n", .{ss});
 }
