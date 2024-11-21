@@ -17,16 +17,19 @@ pub fn main() void {
 	}
 
 	// Fuzzy union of the sets
+	stdout.print("Fuzzy Union\n", .{}) catch {};
 	for (fuzzy_union(mu_a, mu_b)) |x|
 		stdout.print("{d:.3} ", .{x}) catch {};
-	stdout.print("\n", .{}) catch {};
+	stdout.print("\n\n", .{}) catch {};
 
 	// Fuzzy intersection
+	stdout.print("Fuzzy Intersection\n", .{}) catch {};
 	for (fuzzy_intersection(mu_a, mu_b)) |x|
 		stdout.print("{d:.3} ", .{x}) catch {};
-	stdout.print("\n", .{}) catch {};
+	stdout.print("\n\n", .{}) catch {};
 
 	// Fuzzy complements
+	stdout.print("Fuzzy Complements\n", .{}) catch {};
 	for (fuzzy_complement(mu_a)) |x|
 		stdout.print("{d:.3} ", .{x}) catch {};
 	stdout.print("\n", .{}) catch {};
