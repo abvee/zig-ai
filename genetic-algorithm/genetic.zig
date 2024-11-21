@@ -4,17 +4,15 @@ const stdout = std.io.getStdOut().writer();
 inline fn fitness(x: u32) u32 { return x * x; }
 
 const LEN = 4;
+var population: [LEN]u5 = [_]u5{
+	0b01100,
+	0b11001,
+	0b00101,
+	0b10011,
+}; // hardcoded initial population
 
 pub fn main() void {
-	// Initialise initial population values
-
-	const population: [LEN]u5 = [_]u5{
-		0b01100,
-		0b11001,
-		0b00101,
-		0b10011,
-	}; // hardcoded initial population
-
+	// Initialise initial values
 	// fitness values
 	var fit: [LEN]u32 = [_]u32{0} ** LEN;
 	var fit_sum: u32 = 0;
@@ -37,4 +35,33 @@ pub fn main() void {
 	for (fit, &expected) |f, *e| {
 		e.* = @as(f32, @floatFromInt(f)) / fit_average;
 	}
+}
+
+// return popluation after changing it
+fn mating() [LEN]u5 {
+	var ret: [LEN]u5 = population; // return population
+
+	// hardcoded cross over - one is 4, the other is 2
+	_ = enum {FIRST = 4, SECOND = 2};
+	const first_zero_mask = 0b0 << .FIRST;
+	const second_zero_mask = 0b0 << .SECOND;
+
+	const first_clear_mask = 0b01111;
+	const second_clear_mask = 0b00011;
+
+	// first section
+	for (&ret[0..LEN / 2]) |*r| {
+		const mutation = ~(r.*|first_clear_mask)|first_clear_mask;
+		r.* |= first_clear_mask;
+		r.* += mutation;
+	}
+
+	// second section
+	for (&ret[(LEN / 2) + 1..LEN]) |*r| {
+		const mutation = ~(r.*|second_clear_mask)|second_clear_mask;
+		r.* |= second_clear_mask;
+		r.* += mutation;
+	}
+
+	return ret;
 }
