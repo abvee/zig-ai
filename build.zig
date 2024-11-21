@@ -50,4 +50,13 @@ pub fn build(b: *std.Build) void {
 		});
 		b.installArtifact(or_perceptron);
 	}
+	{
+		const back_propagation = b.addExecutable(.{
+			.name = "back-propagation-perception",
+			.root_source_file = b.path("backprop-perceptron/backprop-perceptron.zig"),
+			.target = b.host,
+			.optimize = optimize,
+		});
+		b.installArtifact(back_propagation);
+	}
 }
