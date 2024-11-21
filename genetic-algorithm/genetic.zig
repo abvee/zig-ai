@@ -4,6 +4,8 @@ const stdout = std.io.getStdOut().writer();
 inline fn fitness(x: u32) u32 { return x * x; }
 
 const LEN = 4;
+const EPOCHS = 10;
+
 var population: [LEN]u5 = [_]u5{
 	0b01100,
 	0b11001,
@@ -59,19 +61,23 @@ pub fn main() void {
 
 	// expected
 	const expected: [LEN]f32 = expected_count(fit, fit_average);
+	_ = expected;
 
-	std.debug.print("{any}\n{any}\n{any}\n", .{
-		fit,
-		probability,
-		expected,
-	});
+	// run for specified number of epochs
+	for (0..EPOCHS) |_| {
+		// perform mating
+		population = mating();
 
-	population = mating();
-	fit = fitness_calc(&fit_sum);
-	fit_average = @as(f32, @floatFromInt(fit_sum)) / LEN;
+		// perform mutation
+		population = mutation();
+
+		// recalculate fitness values
+		fit = fitness_calc(&fit_sum);
+		fit_average = @as(f32, @floatFromInt(fit_sum)) / LEN;
+	}
 }
 
-// return popluation after changing it
+// return popluation after mating
 fn mating() [LEN]u5 {
 	var ret: [LEN]u5 = population; // return population
 
@@ -81,25 +87,40 @@ fn mating() [LEN]u5 {
 
 	// first section
 	for (ret[0..LEN / 2]) |*r| {
-		const mutation = (~(r.* & first_mask))&first_mask;
+		const mut = (~(r.* & first_mask))&first_mask;
 		r.* &= ~first_mask;
-		r.* += mutation;
+		r.* += mut;
 	}
 
 	// second section
 	for (ret[(LEN / 2) + 1..LEN]) |*r| {
-		const mutation = (~(r.* & second_mask))&second_mask;
+		const mut = (~(r.* & second_mask))&second_mask;
 		r.* &= ~second_mask;
-		r.* += mutation;
+		r.* += mut;
 	}
 	first_mask += 1;
 	second_mask += 1;
 	return ret;
 }
-
 test "mating" {
-	var p: [LEN]u5 = population;
-	p = mating();
+	const p = mating();
+	std.debug.print("{any}\n", .{population});
+	std.debug.print("{any}\n", .{p});
+}
+
+const rand = std.crypto.random;
+// return population mutation
+fn mutation() [LEN]u5 {
+	var ret: [LEN]u5 = population; // return population
+	for (&ret) |*r| {
+		const seed = rand.int(u5); // generate random mutation value
+		r.* ^= seed;
+	}
+	return ret;
+}
+test "mutation" {
+	std.debug.print("MUTATION\n", .{});
+	const p = mutation();
 	std.debug.print("{any}\n", .{population});
 	std.debug.print("{any}\n", .{p});
 }
