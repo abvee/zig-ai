@@ -51,7 +51,7 @@ pub fn main() !void {
 	var epoch: u8 = 0;
 	stdout.print("Net Input\tHidden Output\tOutput\tError\tWeight changes\tWeights\n", .{})
 		catch {};
-	while (epoch < 255) : (epoch += 1) {
+	while (epoch < 150) : (epoch += 1) {
 		stdout.print("Epoch {}\n", .{epoch}) catch {};
 		// forward propogation
 		// the inputs y1 and y2 are the outputs of the 2 hidden nodes
@@ -84,15 +84,6 @@ pub fn main() !void {
 		h1.w2 += alpha * del_out[1] * h1.x2.*;
 		h2.w1 += alpha * del_out[1] * h2.x1.*;
 		h2.w2 += alpha * del_out[1] * h2.x2.*;
-
-		// stdout.print("{d:.3} {d:.3} {d:.3} {d:.3} {d:.3} {d:.3}\n", .{
-		// 	alpha * del_out[0] * output.y1,
-		// 	alpha * del_out[0] * output.y2,
-		// 	alpha * del_out[1] * h1.x1.*,
-		// 	alpha * del_out[1] * h2.x1.*,
-		// 	alpha * del_out[1] * h2.x1.*,
-		// 	alpha * del_out[1] * h2.x2.*,
-		// }) catch {};
 
 		stdout.print("{d:.3} {d:.3} {d:.3} {d:.3} {d:.3} {d:.3}\n", .{
 			output.w1,
